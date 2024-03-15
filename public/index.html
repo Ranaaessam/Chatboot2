@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.io Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #chat-container {
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      margin-top: 50px;
+    }
+
+    #username-container {
+      text-align: center; /* Center text in the username container */
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Center items in the form vertically */
+      margin-top: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px; /* Add some space below the input */
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      background-color: palevioletred;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages li {
+      margin: 10px 0;
+      font-size: 14px;
+    }
+
+    .you-label {
+      color: palevioletred;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="username-container">
+    <label for="username"><b>Enter your username please:</b></label>
+    <hr>
+
+
+    <input id="username" autocomplete="off" />
+    <button onclick="submitUsername()">Submit</button>
+  </div>
+
+
+
+
+  <div id="chat-container" style="display: none;">
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let username = '';
+  
+    function submitUsername() {
+      const usernameInput = document.getElementById('username');
+      const usernameContainer = document.getElementById('username-container');
+      const chatContainer = document.getElementById('chat-container');
+  
+      username = usernameInput.value;
+      if (username) {
+        usernameContainer.style.display = 'none';
+        chatContainer.style.display = 'block';
+      }
+    }
+  
+    const form = document.querySelector('form');
+    const input = document.querySelector('#m');
+    const messages = document.querySelector('#messages');
+  
+    function getFormattedTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `${timeString}`;
+    }
+  
+    socket.on('chat message', (data) => {
+      const li = document.createElement('li');
+      const messageContent = data.username === username ? 'You' : data.username;
+      li.innerHTML = `<span class="${data.username === username ? 'you-label' : ''}">${messageContent}</span>: ${data.message} - ${getFormattedTime()}`;
+      messages.appendChild(li);
+    });
+  
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', { username, message: input.value });
+        input.value = '';
+      }
+    });
+  </script>
+  
+</body>
+</html>
